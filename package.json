@@ -18,6 +18,7 @@
     "eslint-plugin-html": "^6.0.0"
   },
   "dependencies": {
+    "batch": "^0.6.1",
     "fluent-ffmpeg": "^2.1.2",
     "jsmediatags": "^3.9.2",
     "node-id3": "^0.1.8"

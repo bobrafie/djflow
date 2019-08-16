@@ -3,8 +3,10 @@
 const fs = require('fs')
 const glob = require('glob')
 const ffmpeg = require('fluent-ffmpeg')
+const Batch = require('batch')
 
 const srcFolder = 'L:\\Music'
+const srcExtension = 'flac'
 
 const getMetadata = (src) => {
   return new Promise((resolve, reject) => {
@@ -45,25 +47,31 @@ const convertFile = (src, dest, metadata = {}) => {
 }
 
 const deleteFile = (src) => {
-  const tempFile = fs.openSync(src, 'r')
-  fs.closeSync(tempFile)
-  fs.unlinkSync(src)
+  return new Promise((resolve) => {
+    const tempFile = fs.openSync(src, 'r')
+    fs.closeSync(tempFile)
+    fs.unlinkSync(src)
+    resolve
+  })
 }
 
 const fullFlowFile = (src) => {
-  let dest = src.split('.')
+  return new Promise((resolve, reject) => {
+    let dest = src.split('.')
 
-  if (dest[dest.length - 1] === 'flac') {
-    dest[dest.length - 1] = 'mp3'
-    dest = dest.join('.')
+    if (dest[dest.length - 1] === srcExtension) {
+      dest[dest.length - 1] = 'mp3'
+      dest = dest.join('.')
 
-    getMetadata(src).then((metadata) => {
-      // console.log(metadata.format.tags)
-      convertFile(src, dest, metadata).then(deleteFile)
-    })
-  } else {
-    console.log('ERROR: not a flac file')
-  }
+      getMetadata(src).then((metadata) => {
+        // console.log(metadata.format.tags)
+        convertFile(src, dest, metadata).then(deleteFile).then(resolve)
+      })
+    } else {
+      console.log('ERROR: not a flac file')
+      reject('not a flac file')
+    }
+  })
 }
 
 const findAllByExtension = (src, extension) => {
@@ -79,8 +87,28 @@ const findAllByExtension = (src, extension) => {
   })
 }
 
-findAllByExtension(srcFolder, 'flac').then((files) => {
-  files.forEach(fullFlowFile)
+findAllByExtension(srcFolder, srcExtension).then((files) => {
+  const batch = new Batch
+
+  batch.concurrency(5)
+
+  files.forEach((file) => {
+    batch.push(function(done){
+      // console.log(file)
+      // setTimeout(done, 2000)
+      fullFlowFile(file).then(done)
+    })
+  })
+
+  batch.on('progress', function(e){
+    process.stdout.write(`${e.percent}%\r`)
+  });
+  
+  batch.end(function(err){
+    process.stdout.write('done!\r\n')
+  });
+  
+
   // files.forEach((file) => {
   // getMetadata(file).then((metadata) => {
   //   console.log(file, metadata.format.tags.INITIALKEY)
