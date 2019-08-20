@@ -51,7 +51,7 @@ const deleteFile = (src) => {
     const tempFile = fs.openSync(src, 'r')
     fs.closeSync(tempFile)
     fs.unlinkSync(src)
-    resolve
+    resolve()
   })
 }
 
@@ -88,26 +88,31 @@ const findAllByExtension = (src, extension) => {
 }
 
 findAllByExtension(srcFolder, srcExtension).then((files) => {
-  const batch = new Batch
+  const batch = new Batch()
 
   batch.concurrency(5)
+  console.log(files)
 
   files.forEach((file) => {
-    batch.push(function(done){
+    batch.push(function (done) {
       // console.log(file)
       // setTimeout(done, 2000)
+      // done()
       fullFlowFile(file).then(done)
     })
   })
 
-  batch.on('progress', function(e){
+  batch.on('progress', function (e) {
     process.stdout.write(`${e.percent}%\r`)
-  });
-  
-  batch.end(function(err){
-    process.stdout.write('done!\r\n')
-  });
-  
+  })
+
+  batch.end(function (err) {
+    if (err) {
+      console.log('error!!!', err)
+    } else {
+      process.stdout.write('done!\r\n')
+    }
+  })
 
   // files.forEach((file) => {
   // getMetadata(file).then((metadata) => {
