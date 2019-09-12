@@ -13,14 +13,14 @@
     "parser": "babel-eslint"
   },
   "devDependencies": {
-    "babel-eslint": "^10.0.2",
-    "eslint": "^6.0.1",
+    "babel-eslint": "^10.0.3",
+    "eslint": "^6.3.0",
     "eslint-plugin-html": "^6.0.0"
   },
   "dependencies": {
     "batch": "^0.6.1",
     "fluent-ffmpeg": "^2.1.2",
     "jsmediatags": "^3.9.2",
-    "node-id3": "^0.1.8"
+    "node-id3": "^0.1.11"
   }
 }
